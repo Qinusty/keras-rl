@@ -41,6 +41,7 @@ class Agent(object):
         self.processor = processor
         self.training = False
         self.step = 0
+        self.max_episode_steps = None
 
     def get_config(self):
         """Configuration of the agent for serialization.
@@ -85,7 +86,7 @@ class Agent(object):
             raise RuntimeError('Your tried to fit your agent but it hasn\'t been compiled yet. Please call `compile()` before `fit()`.')
         if action_repetition < 1:
             raise ValueError('action_repetition must be >= 1, is {}'.format(action_repetition))
-
+        self.max_episode_steps = nb_max_episode_steps
         self.training = True
 
         callbacks = [] if not callbacks else callbacks[:]
@@ -188,7 +189,7 @@ class Agent(object):
                     reward += r
                     if done:
                         break
-                if nb_max_episode_steps and episode_step >= nb_max_episode_steps - 1:
+                if self.max_episode_steps and episode_step >= self.max_episode_steps - 1:
                     # Force a terminal state.
                     done = True
                 metrics = self.backward(reward, terminal=done)
@@ -272,6 +273,7 @@ class Agent(object):
         if action_repetition < 1:
             raise ValueError('action_repetition must be >= 1, is {}'.format(action_repetition))
 
+        self.max_episode_steps = nb_max_episode_steps
         self.training = False
         self.step = 0
 
@@ -361,7 +363,7 @@ class Agent(object):
                     if d:
                         done = True
                         break
-                if nb_max_episode_steps and episode_step >= nb_max_episode_steps - 1:
+                if self.max_episode_steps and episode_step >= self.max_episode_steps - 1:
                     done = True
                 self.backward(reward, terminal=done)
                 episode_reward += reward
